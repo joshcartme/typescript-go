@@ -67,6 +67,7 @@ type cliOptions struct {
 	devel struct {
 		quiet          bool
 		singleThreaded bool
+		concurrency    string
 		printTypes     bool
 		pprofDir       string
 	}
@@ -111,6 +112,7 @@ func parseArgs() *cliOptions {
 	flag.BoolVar(&opts.devel.quiet, "q", false, "Do not print diagnostics.")
 	flag.BoolVar(&opts.devel.quiet, "quiet", false, "Do not print diagnostics.")
 	flag.BoolVar(&opts.devel.singleThreaded, "singleThreaded", false, "Run in single threaded mode.")
+	flag.StringVar(&opts.devel.concurrency, "concurrency", "default", "Set the concurrency level for the compiler. Options: default, single-threaded, max-procs, checker-per-file, or a number.")
 	flag.BoolVar(&opts.devel.printTypes, "printTypes", false, "Print types defined in 'main.ts'.")
 	flag.StringVar(&opts.devel.pprofDir, "pprofDir", "", "Generate pprof CPU/memory profiles to the given directory.")
 	flag.Parse()
@@ -118,6 +120,10 @@ func parseArgs() *cliOptions {
 	if len(flag.Args()) > 0 {
 		fmt.Fprintf(os.Stderr, "Unknown positional arguments %v. Current compiler is not identical to tsc but can be partially emulated by running:\n\ntsgo tsc <args>\n", flag.Args())
 		os.Exit(1)
+	}
+
+	if opts.devel.singleThreaded {
+		opts.devel.concurrency = "single-threaded"
 	}
 
 	return opts
@@ -163,6 +169,12 @@ func runMain() int {
 		return 0
 	}
 
+	concurrency, err := compiler.ParseConcurrency(opts.devel.concurrency)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing concurrency: %v\n", err)
+		return 1
+	}
+
 	startTime := time.Now()
 
 	currentDirectory, err := os.Getwd()
@@ -194,7 +206,7 @@ func runMain() int {
 	program := compiler.NewProgram(compiler.ProgramOptions{
 		ConfigFileName: configFileName,
 		Options:        compilerOptions,
-		SingleThreaded: opts.devel.singleThreaded,
+		Concurrency:    concurrency,
 		Host:           host,
 	})
 	parseTime := time.Since(parseStart)
