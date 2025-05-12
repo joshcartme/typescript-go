@@ -18,7 +18,7 @@ type WriteFileData struct {
 type EmitHost interface {
 	SourceFileMetaDataProvider
 	Options() *core.CompilerOptions
-	SourceFiles() []*ast.SourceFile
+	GetSourceFiles() []*ast.SourceFile
 	UseCaseSensitiveFileNames() bool
 	GetCurrentDirectory() string
 	CommonSourceDirectory() string

@@ -63,7 +63,7 @@ func createReportErrorSummary(sys System, options *core.CompilerOptions) func(di
 func reportStatistics(sys System, program *compiler.Program) {
 	// todo
 	stats := []statistic{
-		newStatistic("Files", len(program.SourceFiles())),
+		newStatistic("Files", len(program.GetSourceFiles())),
 		// newStatistic("Identifiers", program.IdentifierCount()),
 		// newStatistic("Symbols", program.getSymbolCount()),
 		newStatistic("Types", program.TypeCount()),

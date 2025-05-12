@@ -181,7 +181,6 @@ func NewProgramFromParsedCommandLine(config *tsoptions.ParsedCommandLine, host C
 	return NewProgram(programOptions)
 }
 
-func (p *Program) SourceFiles() []*ast.SourceFile { return p.files }
 func (p *Program) Options() *core.CompilerOptions { return p.compilerOptions }
 func (p *Program) Host() CompilerHost             { return p.host }
 func (p *Program) GetConfigFileParsingDiagnostics() []*ast.Diagnostic {

@@ -520,7 +520,7 @@ type WideningContext struct {
 
 type Program interface {
 	Options() *core.CompilerOptions
-	SourceFiles() []*ast.SourceFile
+	GetSourceFiles() []*ast.SourceFile
 	BindSourceFiles()
 	GetEmitModuleFormatOfFile(sourceFile *ast.SourceFile) core.ModuleKind
 	GetImpliedNodeFormatForEmit(sourceFile *ast.SourceFile) core.ModuleKind
@@ -837,7 +837,7 @@ func NewChecker(program Program) *Checker {
 	c.program = program
 	// c.host = program.host
 	c.compilerOptions = program.Options()
-	c.files = program.SourceFiles()
+	c.files = program.GetSourceFiles()
 	c.fileIndexMap = createFileIndexMap(c.files)
 	c.compareSymbols = c.compareSymbolsWorker // Closure optimization
 	c.languageVersion = c.compilerOptions.GetEmitScriptTarget()
@@ -1787,7 +1787,7 @@ func (c *Checker) isBlockScopedNameDeclaredBeforeUse(declaration *ast.Node, usag
 		if c.isUsedInFunctionOrInstanceProperty(usage, declaration, declContainer) {
 			return true
 		}
-		sourceFiles := c.program.SourceFiles()
+		sourceFiles := c.program.GetSourceFiles()
 		return slices.Index(sourceFiles, declarationFile) <= slices.Index(sourceFiles, useFile)
 	}
 	// deferred usage in a type context is always OK regardless of the usage position:

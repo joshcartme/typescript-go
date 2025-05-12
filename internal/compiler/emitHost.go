@@ -15,7 +15,7 @@ type emitHost struct {
 }
 
 func (host *emitHost) Options() *core.CompilerOptions { return host.program.Options() }
-func (host *emitHost) SourceFiles() []*ast.SourceFile { return host.program.SourceFiles() }
+func (host *emitHost) GetSourceFiles() []*ast.SourceFile { return host.program.GetSourceFiles() }
 func (host *emitHost) GetCurrentDirectory() string    { return host.program.host.GetCurrentDirectory() }
 func (host *emitHost) CommonSourceDirectory() string  { return host.program.CommonSourceDirectory() }
 func (host *emitHost) UseCaseSensitiveFileNames() bool {

@@ -26,7 +26,7 @@ func (p *fakeProgram) Options() *core.CompilerOptions {
 	return p.compilerOptions
 }
 
-func (p *fakeProgram) SourceFiles() []*ast.SourceFile {
+func (p *fakeProgram) GetSourceFiles() []*ast.SourceFile {
 	return p.files
 }
 

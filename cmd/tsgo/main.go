@@ -276,7 +276,7 @@ func runMain() int {
 
 	var stats table
 
-	stats.add("Files", len(program.SourceFiles()))
+	stats.add("Files", len(program.GetSourceFiles()))
 	stats.add("Lines", program.LineCount())
 	stats.add("Identifiers", program.IdentifierCount())
 	stats.add("Symbols", program.SymbolCount())
@@ -336,14 +336,14 @@ func formatDuration(d time.Duration) string {
 
 func identifierCount(p *compiler.Program) int {
 	count := 0
-	for _, file := range p.SourceFiles() {
+	for _, file := range p.GetSourceFiles() {
 		count += file.IdentifierCount
 	}
 	return count
 }
 
 func listFiles(p *compiler.Program) {
-	for _, file := range p.SourceFiles() {
+	for _, file := range p.GetSourceFiles() {
 		fmt.Println(file.FileName())
 	}
 }
