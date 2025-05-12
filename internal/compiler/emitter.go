@@ -43,7 +43,7 @@ func (e *emitter) emit() {
 }
 
 func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sourceMapFilePath string) {
-	options := e.host.Options()
+	options := e.host.GetCompilerOptions()
 
 	if sourceFile == nil || e.emitOnly != emitAll && e.emitOnly != emitOnlyJs || len(jsFilePath) == 0 {
 		return
@@ -93,7 +93,7 @@ func (e *emitter) emitBuildInfo(buildInfoPath string) {
 
 func (e *emitter) printSourceFile(jsFilePath string, sourceMapFilePath string, sourceFile *ast.SourceFile, printer_ *printer.Printer) bool {
 	// !!! sourceMapGenerator
-	options := e.host.Options()
+	options := e.host.GetCompilerOptions()
 	var sourceMapGenerator *sourcemap.Generator
 	if shouldEmitSourceMaps(options, sourceFile) {
 		sourceMapGenerator = sourcemap.NewGenerator(
@@ -153,7 +153,7 @@ func (e *emitter) printSourceFile(jsFilePath string, sourceMapFilePath string, s
 	// Write the output file
 	text := e.writer.String()
 	data := &printer.WriteFileData{SourceMapUrlPos: sourceMapUrlPos} // !!! transform diagnostics
-	err := e.host.WriteFile(jsFilePath, text, e.host.Options().EmitBOM.IsTrue(), sourceFiles, data)
+	err := e.host.WriteFile(jsFilePath, text, e.host.GetCompilerOptions().EmitBOM.IsTrue(), sourceFiles, data)
 	if err != nil {
 		e.emitterDiagnostics.Add(ast.NewCompilerDiagnostic(diagnostics.Could_not_write_file_0_Colon_1, jsFilePath, err.Error()))
 	}
@@ -177,7 +177,7 @@ func getSourceFilePathInNewDir(fileName string, newDirPath string, currentDirect
 }
 
 func getOwnEmitOutputFilePath(fileName string, host printer.EmitHost, extension string) string {
-	compilerOptions := host.Options()
+	compilerOptions := host.GetCompilerOptions()
 	var emitOutputFilePathWithoutExtension string
 	if len(compilerOptions.OutDir) > 0 {
 		currentDirectory := host.GetCurrentDirectory()
@@ -299,7 +299,7 @@ type outputPaths struct {
 }
 
 func getOutputPathsFor(sourceFile *ast.SourceFile, host printer.EmitHost, forceDtsEmit bool) *outputPaths {
-	options := host.Options()
+	options := host.GetCompilerOptions()
 	// !!! bundle not implemented, may be deprecated
 	ownOutputFilePath := getOwnEmitOutputFilePath(sourceFile.FileName(), host, core.GetOutputExtension(sourceFile.FileName(), options.Jsx))
 	isJsonFile := ast.IsJsonSourceFile(sourceFile)

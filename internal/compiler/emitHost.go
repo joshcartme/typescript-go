@@ -14,10 +14,12 @@ type emitHost struct {
 	program *Program
 }
 
-func (host *emitHost) Options() *core.CompilerOptions { return host.program.Options() }
+func (host *emitHost) GetCompilerOptions() *core.CompilerOptions {
+	return host.program.GetCompilerOptions()
+}
 func (host *emitHost) GetSourceFiles() []*ast.SourceFile { return host.program.GetSourceFiles() }
-func (host *emitHost) GetCurrentDirectory() string    { return host.program.host.GetCurrentDirectory() }
-func (host *emitHost) CommonSourceDirectory() string  { return host.program.CommonSourceDirectory() }
+func (host *emitHost) GetCurrentDirectory() string       { return host.program.host.GetCurrentDirectory() }
+func (host *emitHost) CommonSourceDirectory() string     { return host.program.CommonSourceDirectory() }
 func (host *emitHost) UseCaseSensitiveFileNames() bool {
 	return host.program.host.FS().UseCaseSensitiveFileNames()
 }

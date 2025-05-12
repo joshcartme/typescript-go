@@ -202,7 +202,7 @@ func performCompilation(sys System, cb cbType, config *tsoptions.ParsedCommandLi
 func compileAndEmit(sys System, program *compiler.Program, reportDiagnostic diagnosticReporter) ([]*ast.Diagnostic, *compiler.EmitResult, ExitStatus) {
 	// todo: check if third return needed after execute is fully implemented
 
-	options := program.Options()
+	options := program.GetCompilerOptions()
 	allDiagnostics := program.GetConfigFileParsingDiagnostics()
 
 	// todo: early exit logic and append diagnostics
@@ -244,7 +244,7 @@ func compileAndEmit(sys System, program *compiler.Program, reportDiagnostic diag
 		// todo: listFiles(program, sys.Writer())
 	}
 
-	createReportErrorSummary(sys, program.Options())(allDiagnostics)
+	createReportErrorSummary(sys, program.GetCompilerOptions())(allDiagnostics)
 	return allDiagnostics, emitResult, ExitStatusSuccess
 }
 

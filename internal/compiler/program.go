@@ -181,7 +181,7 @@ func NewProgramFromParsedCommandLine(config *tsoptions.ParsedCommandLine, host C
 	return NewProgram(programOptions)
 }
 
-func (p *Program) Options() *core.CompilerOptions { return p.compilerOptions }
+func (p *Program) GetCompilerOptions() *core.CompilerOptions { return p.compilerOptions }
 func (p *Program) Host() CompilerHost             { return p.host }
 func (p *Program) GetConfigFileParsingDiagnostics() []*ast.Diagnostic {
 	return slices.Clip(p.configFileParsingDiagnostics)
@@ -304,7 +304,7 @@ func (p *Program) GetOptionsDiagnostics() []*ast.Diagnostic {
 
 func (p *Program) getOptionsDiagnosticsOfConfigFile() []*ast.Diagnostic {
 	// todo update p.configParsingDiagnostics when updateAndGetProgramDiagnostics is implemented
-	if p.Options() == nil || p.Options().ConfigFilePath == "" {
+	if p.GetCompilerOptions() == nil || p.GetCompilerOptions().ConfigFilePath == "" {
 		return nil
 	}
 	return p.configFileParsingDiagnostics // TODO: actually call getDiagnosticsHelper on config path
@@ -542,10 +542,6 @@ func (p *Program) CommonSourceDirectory() string {
 	return p.commonSourceDirectory
 }
 
-func (p *Program) GetCompilerOptions() *core.CompilerOptions {
-	return p.compilerOptions
-}
-
 func computeCommonSourceDirectoryOfFilenames(fileNames []string, currentDirectory string, useCaseSensitiveFileNames bool) string {
 	var commonPathComponents []string
 	for _, sourceFile := range fileNames {
@@ -632,7 +628,7 @@ func (p *Program) Emit(options EmitOptions) *EmitResult {
 
 	writerPool := &sync.Pool{
 		New: func() any {
-			return printer.NewTextWriter(host.Options().NewLine.GetNewLineCharacter())
+			return printer.NewTextWriter(host.GetCompilerOptions().NewLine.GetNewLineCharacter())
 		},
 	}
 	wg := core.NewWorkGroup(p.programOptions.SingleThreaded)

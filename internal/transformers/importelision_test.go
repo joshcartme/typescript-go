@@ -22,7 +22,7 @@ type fakeProgram struct {
 	getResolvedModule           func(currentSourceFile *ast.SourceFile, moduleReference string) *ast.SourceFile
 }
 
-func (p *fakeProgram) Options() *core.CompilerOptions {
+func (p *fakeProgram) GetCompilerOptions() *core.CompilerOptions {
 	return p.compilerOptions
 }
 

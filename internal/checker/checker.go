@@ -519,7 +519,7 @@ type WideningContext struct {
 }
 
 type Program interface {
-	Options() *core.CompilerOptions
+	GetCompilerOptions() *core.CompilerOptions
 	GetSourceFiles() []*ast.SourceFile
 	BindSourceFiles()
 	GetEmitModuleFormatOfFile(sourceFile *ast.SourceFile) core.ModuleKind
@@ -836,7 +836,7 @@ func NewChecker(program Program) *Checker {
 	c.id = nextCheckerID.Add(1)
 	c.program = program
 	// c.host = program.host
-	c.compilerOptions = program.Options()
+	c.compilerOptions = program.GetCompilerOptions()
 	c.files = program.GetSourceFiles()
 	c.fileIndexMap = createFileIndexMap(c.files)
 	c.compareSymbols = c.compareSymbolsWorker // Closure optimization

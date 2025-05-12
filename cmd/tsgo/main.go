@@ -199,7 +199,7 @@ func runMain() int {
 	})
 	parseTime := time.Since(parseStart)
 
-	compilerOptions = program.Options()
+	compilerOptions = program.GetCompilerOptions()
 
 	if compilerOptions.ListFilesOnly.IsTrue() {
 		listFiles(program)

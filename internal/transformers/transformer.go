@@ -52,7 +52,7 @@ func getModuleTransformer(emitContext *printer.EmitContext, options *core.Compil
 
 func GetScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHost, sourceFile *ast.SourceFile) []*Transformer {
 	var tx []*Transformer
-	options := host.Options()
+	options := host.GetCompilerOptions()
 	languageVersion := options.GetEmitScriptTarget()
 
 	// JS files don't use reference calculations as they don't do import elision, no need to calculate it
