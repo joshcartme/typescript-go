@@ -11,6 +11,7 @@ import (
 	"github.com/microsoft/typescript-go/internal/printer"
 	"github.com/microsoft/typescript-go/internal/testutil/emittestutil"
 	"github.com/microsoft/typescript-go/internal/testutil/parsetestutil"
+	"github.com/microsoft/typescript-go/internal/tsoptions"
 	"github.com/microsoft/typescript-go/internal/tspath"
 )
 
@@ -43,16 +44,20 @@ func (p *fakeProgram) GetPackageJsonInfo(pkgJsonPath string) modulespecifiers.Pa
 	return nil
 }
 
-func (p *fakeProgram) GetProjectReferenceRedirect(path string) string {
-	return ""
-}
-
 func (p *fakeProgram) GetRedirectTargets(path tspath.Path) []string {
 	return nil
 }
 
-func (p *fakeProgram) IsSourceOfProjectReferenceRedirect(path string) bool {
+func (p *fakeProgram) GetOutputAndProjectReference(path tspath.Path) *tsoptions.OutputDtsAndProjectReference {
+	return nil
+}
+
+func (p *fakeProgram) IsSourceFromProjectReference(path tspath.Path) bool {
 	return false
+}
+
+func (p *fakeProgram) GetSourceAndProjectReference(file *ast.SourceFile) *tsoptions.SourceAndProjectReference {
+	return nil
 }
 
 func (p *fakeProgram) UseCaseSensitiveFileNames() bool {
@@ -91,15 +96,15 @@ func (p *fakeProgram) GetResolvedModule(currentSourceFile *ast.SourceFile, modul
 	return p.getResolvedModule(currentSourceFile, moduleReference)
 }
 
-func (p *fakeProgram) GetSourceFileMetaData(path tspath.Path) *ast.SourceFileMetaData {
+func (p *fakeProgram) GetSourceFileMetaData(sourceFile *ast.SourceFile) *ast.SourceFileMetaData {
 	return nil
 }
 
-func (p *fakeProgram) GetImportHelpersImportSpecifier(path tspath.Path) *ast.Node {
+func (p *fakeProgram) GetImportHelpersImportSpecifier(sourceFile *ast.SourceFile) *ast.Node {
 	return nil
 }
 
-func (p *fakeProgram) GetJSXRuntimeImportSpecifier(path tspath.Path) (moduleReference string, specifier *ast.Node) {
+func (p *fakeProgram) GetJSXRuntimeImportSpecifier(sourceFile *ast.SourceFile) (moduleReference string, specifier *ast.Node) {
 	return "", nil
 }
 

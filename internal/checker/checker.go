@@ -24,6 +24,7 @@ import (
 	"github.com/microsoft/typescript-go/internal/printer"
 	"github.com/microsoft/typescript-go/internal/scanner"
 	"github.com/microsoft/typescript-go/internal/stringutil"
+	"github.com/microsoft/typescript-go/internal/tsoptions"
 	"github.com/microsoft/typescript-go/internal/tspath"
 )
 
@@ -527,9 +528,10 @@ type Program interface {
 	GetEmitModuleFormatOfFile(sourceFile *ast.SourceFile) core.ModuleKind
 	GetImpliedNodeFormatForEmit(sourceFile *ast.SourceFile) core.ModuleKind
 	GetResolvedModule(currentSourceFile *ast.SourceFile, moduleReference string) *ast.SourceFile
-	GetSourceFileMetaData(path tspath.Path) *ast.SourceFileMetaData
-	GetJSXRuntimeImportSpecifier(path tspath.Path) (moduleReference string, specifier *ast.Node)
-	GetImportHelpersImportSpecifier(path tspath.Path) *ast.Node
+	GetSourceFileMetaData(sourceFile *ast.SourceFile) *ast.SourceFileMetaData
+	GetJSXRuntimeImportSpecifier(sourceFile *ast.SourceFile) (moduleReference string, specifier *ast.Node)
+	GetImportHelpersImportSpecifier(sourceFile *ast.SourceFile) *ast.Node
+	GetSourceAndProjectReference(file *ast.SourceFile) *tsoptions.SourceAndProjectReference
 }
 
 type Host interface {
@@ -2072,7 +2074,7 @@ func (c *Checker) getSymbol(symbols ast.SymbolTable, name string, meaning ast.Sy
 }
 
 func (c *Checker) CheckSourceFile(ctx context.Context, sourceFile *ast.SourceFile) {
-	if SkipTypeChecking(sourceFile, c.compilerOptions) {
+	if SkipTypeChecking(sourceFile, c.compilerOptions, c.program.IsSourceFromProjectReference) {
 		return
 	}
 	c.checkSourceFile(ctx, sourceFile)
@@ -6388,14 +6390,13 @@ func (c *Checker) checkAliasSymbol(node *ast.Node) {
 			// in files that are unambiguously CommonJS in this mode.
 			c.error(node, diagnostics.ESM_syntax_is_not_allowed_in_a_CommonJS_module_when_module_is_set_to_preserve)
 		}
-		// !!!
-		// if c.compilerOptions.VerbatimModuleSyntax.IsTrue() && !ast.IsTypeOnlyImportOrExportDeclaration(node) && node.Flags&ast.NodeFlagsAmbient == 0 && targetFlags&ast.SymbolFlagsConstEnum != 0 {
-		// 	constEnumDeclaration := target.ValueDeclaration
-		// 	redirect := host.getRedirectReferenceForResolutionFromSourceOfProject(ast.GetSourceFileOfNode(constEnumDeclaration).ResolvedPath)
-		// 	if constEnumDeclaration.Flags&ast.NodeFlagsAmbient != 0 && (redirect == nil || !shouldPreserveConstEnums(redirect.commandLine.options)) {
-		// 		c.error(node, diagnostics.Cannot_access_ambient_const_enums_when_0_is_enabled, c.getIsolatedModulesLikeFlagName())
-		// 	}
-		// }
+		if c.compilerOptions.VerbatimModuleSyntax.IsTrue() && !ast.IsTypeOnlyImportOrExportDeclaration(node) && node.Flags&ast.NodeFlagsAmbient == 0 && targetFlags&ast.SymbolFlagsConstEnum != 0 {
+			constEnumDeclaration := target.ValueDeclaration
+			redirect := c.program.GetSourceAndProjectReference(ast.GetSourceFileOfNode(constEnumDeclaration))
+			if constEnumDeclaration.Flags&ast.NodeFlagsAmbient != 0 && (redirect == nil || !redirect.Resolved.CompilerOptions().ShouldPreserveConstEnums()) {
+				c.error(node, diagnostics.Cannot_access_ambient_const_enums_when_0_is_enabled, c.getIsolatedModulesLikeFlagName())
+			}
+		}
 	}
 	if ast.IsImportSpecifier(node) {
 		targetSymbol := c.resolveAliasWithDeprecationCheck(symbol, node)
@@ -7106,15 +7107,14 @@ func (c *Checker) checkConstEnumAccess(node *ast.Node, t *Type) {
 	// --verbatimModuleSyntax only gets checked here when the enum usage does not
 	// resolve to an import, because imports of ambient const enums get checked
 	// separately in `checkAliasSymbol`.
-	// !!!
-	// if c.compilerOptions.IsolatedModules.IsTrue() || c.compilerOptions.VerbatimModuleSyntax.IsTrue() && ok && c.resolveName(node, getFirstIdentifier(node).Text(), ast.SymbolFlagsAlias, nil, false, true) == nil {
-	// 	// Debug.assert(t.symbol.Flags&ast.SymbolFlagsConstEnum != 0)
-	// 	constEnumDeclaration := t.symbol.ValueDeclaration
-	// 	redirect := host.getRedirectReferenceForResolutionFromSourceOfProject(ast.GetSourceFileOfNode(constEnumDeclaration).ResolvedPath)
-	// 	if constEnumDeclaration.Flags&ast.NodeFlagsAmbient != 0 && !isValidTypeOnlyAliasUseSite(node) && (redirect == nil || !shouldPreserveConstEnums(redirect.commandLine.options)) {
-	// 		c.error(node, diagnostics.Cannot_access_ambient_const_enums_when_0_is_enabled, c.getIsolatedModulesLikeFlagName())
-	// 	}
-	// }
+	if c.compilerOptions.IsolatedModules.IsTrue() || c.compilerOptions.VerbatimModuleSyntax.IsTrue() && ok && c.resolveName(node, ast.GetFirstIdentifier(node).Text(), ast.SymbolFlagsAlias, nil, false, true) == nil {
+		// Debug.assert(t.symbol.Flags&ast.SymbolFlagsConstEnum != 0)
+		constEnumDeclaration := t.symbol.ValueDeclaration
+		redirect := c.program.GetSourceAndProjectReference(ast.GetSourceFileOfNode(constEnumDeclaration))
+		if constEnumDeclaration.Flags&ast.NodeFlagsAmbient != 0 && !ast.IsValidTypeOnlyAliasUseSite(node) && (redirect == nil || !redirect.Resolved.CompilerOptions().ShouldPreserveConstEnums()) {
+			c.error(node, diagnostics.Cannot_access_ambient_const_enums_when_0_is_enabled, c.getIsolatedModulesLikeFlagName())
+		}
+	}
 }
 
 func (c *Checker) instantiateTypeWithSingleGenericCallSignature(node *ast.Node, t *Type, checkMode CheckMode) *Type {
@@ -10180,7 +10180,7 @@ func (c *Checker) checkNewTargetMetaProperty(node *ast.Node) *Type {
 
 func (c *Checker) checkImportMetaProperty(node *ast.Node) *Type {
 	if c.moduleKind == core.ModuleKindNode16 || c.moduleKind == core.ModuleKindNodeNext {
-		sourceFileMetaData := c.program.GetSourceFileMetaData(ast.GetSourceFileOfNode(node).Path())
+		sourceFileMetaData := c.program.GetSourceFileMetaData(ast.GetSourceFileOfNode(node))
 		if sourceFileMetaData == nil || sourceFileMetaData.ImpliedNodeFormat != core.ModuleKindESNext {
 			c.error(node, diagnostics.The_import_meta_meta_property_is_not_allowed_in_files_which_will_build_into_CommonJS_output)
 		}

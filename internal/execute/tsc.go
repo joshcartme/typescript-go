@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/microsoft/typescript-go/internal/ast"
+	"github.com/microsoft/typescript-go/internal/collections"
 	"github.com/microsoft/typescript-go/internal/compiler"
 	"github.com/microsoft/typescript-go/internal/core"
 	"github.com/microsoft/typescript-go/internal/diagnostics"
@@ -114,8 +115,8 @@ func executeCommandLineWorker(sys System, cb cbType, commandLine *tsoptions.Pars
 	compilerOptionsFromCommandLine := commandLine.CompilerOptions()
 
 	if configFileName != "" {
-		extendedConfigCache := map[tspath.Path]*tsoptions.ExtendedConfigCacheEntry{}
-		configParseResult, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, compilerOptionsFromCommandLine, sys, extendedConfigCache)
+		extendedConfigCache := collections.SyncMap[tspath.Path, *tsoptions.ExtendedConfigCacheEntry]{}
+		configParseResult, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, compilerOptionsFromCommandLine, sys, &extendedConfigCache)
 		if len(errors) != 0 {
 			// these are unrecoverable errors--exit to report them as diagnostics
 			for _, e := range errors {
@@ -137,6 +138,7 @@ func executeCommandLineWorker(sys System, cb cbType, commandLine *tsoptions.Pars
 			cb,
 			configParseResult,
 			reportDiagnostic,
+			&extendedConfigCache,
 		), nil
 	} else {
 		if compilerOptionsFromCommandLine.ShowConfig.IsTrue() {
@@ -155,6 +157,7 @@ func executeCommandLineWorker(sys System, cb cbType, commandLine *tsoptions.Pars
 		cb,
 		commandLine,
 		reportDiagnostic,
+		nil,
 	), nil
 }
 
@@ -172,8 +175,8 @@ func findConfigFile(searchPath string, fileExists func(string) bool, configName 
 	return result
 }
 
-func performCompilation(sys System, cb cbType, config *tsoptions.ParsedCommandLine, reportDiagnostic diagnosticReporter) ExitStatus {
-	host := compiler.NewCachedFSCompilerHost(config.CompilerOptions(), sys.GetCurrentDirectory(), sys.FS(), sys.DefaultLibraryPath())
+func performCompilation(sys System, cb cbType, config *tsoptions.ParsedCommandLine, reportDiagnostic diagnosticReporter, extendedConfigCache *collections.SyncMap[tspath.Path, *tsoptions.ExtendedConfigCacheEntry]) ExitStatus {
+	host := compiler.NewCachedFSCompilerHost(config.CompilerOptions(), sys.GetCurrentDirectory(), sys.FS(), sys.DefaultLibraryPath(), extendedConfigCache)
 	// todo: cache, statistics, tracing
 	parseStart := time.Now()
 	program := compiler.NewProgramFromParsedCommandLine(config, host)

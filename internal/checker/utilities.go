@@ -14,6 +14,7 @@ import (
 	"github.com/microsoft/typescript-go/internal/jsnum"
 	"github.com/microsoft/typescript-go/internal/printer"
 	"github.com/microsoft/typescript-go/internal/scanner"
+	"github.com/microsoft/typescript-go/internal/tspath"
 )
 
 func NewDiagnosticForNode(node *ast.Node, message *diagnostics.Message, args ...any) *ast.Diagnostic {
@@ -1537,10 +1538,11 @@ func forEachYieldExpression(body *ast.Node, visitor func(expr *ast.Node)) {
 	traverse(body)
 }
 
-func SkipTypeChecking(sourceFile *ast.SourceFile, options *core.CompilerOptions) bool {
+func SkipTypeChecking(sourceFile *ast.SourceFile, options *core.CompilerOptions, isSourceFromProjectReference func(path tspath.Path) bool) bool {
 	return options.NoCheck.IsTrue() ||
 		options.SkipLibCheck.IsTrue() && sourceFile.IsDeclarationFile ||
 		options.SkipDefaultLibCheck.IsTrue() && sourceFile.HasNoDefaultLib ||
+		isSourceFromProjectReference(sourceFile.Path()) ||
 		!canIncludeBindAndCheckDiagnostics(sourceFile, options)
 }
 

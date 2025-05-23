@@ -8,6 +8,7 @@ import (
 	"github.com/microsoft/typescript-go/internal/modulespecifiers"
 	"github.com/microsoft/typescript-go/internal/printer"
 	"github.com/microsoft/typescript-go/internal/transformers/declarations"
+	"github.com/microsoft/typescript-go/internal/tsoptions"
 	"github.com/microsoft/typescript-go/internal/tspath"
 )
 
@@ -29,7 +30,7 @@ type EmitHost interface {
 	GetCurrentDirectory() string
 	CommonSourceDirectory() string
 	IsEmitBlocked(file string) bool
-	GetSourceFileMetaData(path tspath.Path) *ast.SourceFileMetaData
+	GetSourceFileMetaData(sourceFile *ast.SourceFile) *ast.SourceFileMetaData
 	GetEmitResolver(file *ast.SourceFile, skipDiagnostics bool) printer.EmitResolver
 }
 
@@ -56,16 +57,16 @@ func (host *emitHost) GetPackageJsonInfo(pkgJsonPath string) modulespecifiers.Pa
 	return host.program.GetPackageJsonInfo(pkgJsonPath)
 }
 
-func (host *emitHost) GetProjectReferenceRedirect(path string) string {
-	return host.program.GetProjectReferenceRedirect(path)
+func (host *emitHost) GetOutputAndProjectReference(path tspath.Path) *tsoptions.OutputDtsAndProjectReference {
+	return host.program.GetOutputAndProjectReference(path)
 }
 
 func (host *emitHost) GetRedirectTargets(path tspath.Path) []string {
 	return host.program.GetRedirectTargets(path)
 }
 
-func (host *emitHost) IsSourceOfProjectReferenceRedirect(path string) bool {
-	return host.program.IsSourceOfProjectReferenceRedirect(path)
+func (host *emitHost) IsSourceFromProjectReference(path tspath.Path) bool {
+	return host.program.IsSourceFromProjectReference(path)
 }
 
 func (host *emitHost) GetEffectiveDeclarationFlags(node *ast.Node, flags ast.ModifierFlags) ast.ModifierFlags {
@@ -111,6 +112,6 @@ func (host *emitHost) GetEmitResolver(file *ast.SourceFile, skipDiagnostics bool
 	return checker.GetEmitResolver(file, skipDiagnostics)
 }
 
-func (host *emitHost) GetSourceFileMetaData(path tspath.Path) *ast.SourceFileMetaData {
-	return host.program.GetSourceFileMetaData(path)
+func (host *emitHost) GetSourceFileMetaData(sourceFile *ast.SourceFile) *ast.SourceFileMetaData {
+	return host.program.GetSourceFileMetaData(sourceFile)
 }

@@ -36,7 +36,7 @@ foo.bar;`
 	fs = bundled.WrapFS(fs)
 
 	cd := "/"
-	host := compiler.NewCompilerHost(nil, cd, fs, bundled.LibPath())
+	host := compiler.NewCompilerHost(nil, cd, fs, bundled.LibPath(), nil)
 
 	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, host, nil)
 	assert.Equal(t, len(errors), 0, "Expected no errors in parsed command line")
@@ -67,7 +67,7 @@ func TestCheckSrcCompiler(t *testing.T) {
 
 	rootPath := tspath.CombinePaths(tspath.NormalizeSlashes(repo.TypeScriptSubmodulePath), "src", "compiler")
 
-	host := compiler.NewCompilerHost(nil, rootPath, fs, bundled.LibPath())
+	host := compiler.NewCompilerHost(nil, rootPath, fs, bundled.LibPath(), nil)
 	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile(tspath.CombinePaths(rootPath, "tsconfig.json"), &core.CompilerOptions{}, host, nil)
 	assert.Equal(t, len(errors), 0, "Expected no errors in parsed command line")
 	p := compiler.NewProgramFromParsedCommandLine(parsed, host)
@@ -81,7 +81,7 @@ func BenchmarkNewChecker(b *testing.B) {
 
 	rootPath := tspath.CombinePaths(tspath.NormalizeSlashes(repo.TypeScriptSubmodulePath), "src", "compiler")
 
-	host := compiler.NewCompilerHost(nil, rootPath, fs, bundled.LibPath())
+	host := compiler.NewCompilerHost(nil, rootPath, fs, bundled.LibPath(), nil)
 	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile(tspath.CombinePaths(rootPath, "tsconfig.json"), &core.CompilerOptions{}, host, nil)
 	assert.Equal(b, len(errors), 0, "Expected no errors in parsed command line")
 	p := compiler.NewProgramFromParsedCommandLine(parsed, host)

@@ -153,27 +153,52 @@ func TestProjectReferences(t *testing.T) {
 		t.Skip("bundled files are not embedded")
 	}
 
-	(&tscInput{
-		subScenario: "when project references composite project with noEmit",
-		sys: newTestSys(FileMap{
-			"/home/src/workspaces/solution/src/utils/index.ts": "export const x = 10;",
-			"/home/src/workspaces/solution/src/utils/tsconfig.json": `{
+	cases := []tscInput{
+		{
+			subScenario: "when project references composite project with noEmit",
+			sys: newTestSys(FileMap{
+				"/home/src/workspaces/solution/utils/index.ts": "export const x = 10;",
+				"/home/src/workspaces/solution/utils/tsconfig.json": `{
+			"compilerOptions": {
+				"composite": true,
+				"noEmit": true,
+			},
+		}`,
+				"/home/src/workspaces/solution/project/index.ts": `import { x } from "../utils";`,
+				"/home/src/workspaces/solution/project/tsconfig.json": `{
+			"references": [
+				{ "path": "../utils" },
+			],
+		}`,
+			},
+				"/home/src/workspaces/solution",
+			),
+			commandLineArgs: []string{"--p", "project"},
+		},
+		{
+			subScenario: "when project references composite",
+			sys: newTestSys(FileMap{
+				"/home/src/workspaces/solution/utils/index.ts":   "export const x = 10;",
+				"/home/src/workspaces/solution/utils/index.d.ts": "export declare const x = 10;",
+				"/home/src/workspaces/solution/utils/tsconfig.json": `{
 	"compilerOptions": {
 		"composite": true,
-		"noEmit": true,
 	},
 }`,
-			"/home/src/workspaces/solution/project/index.ts": `import { x } from "../utils";`,
-			"/home/src/workspaces/solution/project/tsconfig.json": `{
+				"/home/src/workspaces/solution/project/index.ts": `import { x } from "../utils";`,
+				"/home/src/workspaces/solution/project/tsconfig.json": `{
 	"references": [
 		{ "path": "../utils" },
 	],
 }`,
+			}, "/home/src/workspaces/solution"),
+			commandLineArgs: []string{"--p", "project"},
 		},
-			"/home/src/workspaces/solution",
-		),
-		commandLineArgs: []string{"--p", "project"},
-	}).verify(t, "projectReferences")
+	}
+
+	for _, c := range cases {
+		c.verify(t, "projectReferences")
+	}
 }
 
 func TestExtends(t *testing.T) {

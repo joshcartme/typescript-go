@@ -233,7 +233,7 @@ func TestProgram(t *testing.T) {
 
 			program := NewProgram(ProgramOptions{
 				RootFiles: []string{"c:/dev/src/index.ts"},
-				Host:      NewCompilerHost(&opts, "c:/dev/src", fs, bundled.LibPath()),
+				Host:      NewCompilerHost(&opts, "c:/dev/src", fs, bundled.LibPath(), nil),
 				Options:   &opts,
 			})
 
@@ -266,7 +266,7 @@ func BenchmarkNewProgram(b *testing.B) {
 			opts := core.CompilerOptions{Target: testCase.target}
 			programOpts := ProgramOptions{
 				RootFiles: []string{"c:/dev/src/index.ts"},
-				Host:      NewCompilerHost(&opts, "c:/dev/src", fs, bundled.LibPath()),
+				Host:      NewCompilerHost(&opts, "c:/dev/src", fs, bundled.LibPath(), nil),
 				Options:   &opts,
 			}
 
@@ -284,9 +284,9 @@ func BenchmarkNewProgram(b *testing.B) {
 		fs := osvfs.FS()
 		fs = bundled.WrapFS(fs)
 
-		host := NewCompilerHost(nil, rootPath, fs, bundled.LibPath())
+		host := NewCompilerHost(nil, rootPath, fs, bundled.LibPath(), nil)
 
-		parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile(tspath.CombinePaths(rootPath, "tsconfig.json"), &core.CompilerOptions{}, host, nil)
+		parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile(tspath.CombinePaths(rootPath, "tsconfig.json"), nil, host, nil)
 		assert.Equal(b, len(errors), 0, "Expected no errors in parsed command line")
 
 		opts := ProgramOptions{
