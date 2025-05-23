@@ -166,10 +166,10 @@ func (b *nodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []
 					}
 					if originalParameters != nil && originalParam != param {
 						// Can't reference parameters that come from an expansion
-						add(param.Name, b.ch.unknownSymbol)
+						add(param.Name, b.realCh.unknownSymbol)
 						// Can't reference the original expanded parameter either
 						if originalParam != nil {
-							add(originalParam.Name, b.ch.unknownSymbol)
+							add(originalParam.Name, b.realCh.unknownSymbol)
 						}
 					} else if !core.Some(param.Declarations, func(d *ast.Node) bool {
 						var bindElement func(e *ast.BindingElement)
