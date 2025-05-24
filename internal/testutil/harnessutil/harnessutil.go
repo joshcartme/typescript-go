@@ -899,7 +899,7 @@ func splitOptionValues(t *testing.T, value string, option string) []string {
 	star := false
 	var includes []string
 	var excludes []string
-	for _, s := range strings.Split(value, ",") {
+	for s := range strings.SplitSeq(value, ",") {
 		s = strings.TrimSpace(s)
 		if len(s) == 0 {
 			continue

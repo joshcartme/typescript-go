@@ -2051,21 +2051,21 @@ func getFilterText(
 	wordStart rune,
 ) string {
 	// Private field completion.
-	if strings.HasPrefix(label, "#") {
+	if after, ok := strings.CutPrefix(label, "#"); ok {
 		// !!! document theses cases
 		if insertText != "" {
-			if strings.HasPrefix(insertText, "this.#") {
+			if after, ok := strings.CutPrefix(insertText, "this.#"); ok {
 				if wordStart == '#' {
 					return insertText
 				} else {
-					return strings.TrimPrefix(insertText, "this.#")
+					return after
 				}
 			}
 		} else {
 			if wordStart == '#' {
 				return ""
 			} else {
-				return strings.TrimPrefix(label, "#")
+				return after
 			}
 		}
 	}

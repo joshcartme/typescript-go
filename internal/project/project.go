@@ -666,7 +666,7 @@ func (p *Project) log(s string) {
 	p.host.Log(s)
 }
 
-func (p *Project) logf(format string, args ...interface{}) {
+func (p *Project) logf(format string, args ...any) {
 	p.log(fmt.Sprintf(format, args...))
 }
 
