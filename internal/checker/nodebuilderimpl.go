@@ -2159,7 +2159,7 @@ func (b *nodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 		} else {
 			propertyTypeNode = b.f.NewKeywordTypeNode(ast.KindAnyKeyword)
 		}
-		if propertyIsReverseMapped {
+		if propertyIsReverseMapped && len(b.ctx.reverseMappedStack) > 0 {
 			b.ctx.reverseMappedStack = b.ctx.reverseMappedStack[:len(b.ctx.reverseMappedStack)-1]
 		}
 	}
